@@ -7,7 +7,7 @@ from pymodaq.utils.data import DataFromPlugins, DataToExport
 from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, comon_parameters, main
 from pymodaq.utils.parameter import Parameter
 
-from pymeasure.instruments.srs.sr830 import SR830
+from pymeasure.instruments.srs import SR830
 from pyvisa import ResourceManager
 
 VISA_rm = ResourceManager()
@@ -17,6 +17,9 @@ for dev in devices:
     if 'GPIB' in dev:
         device = dev
         break
+
+interfaces = ['RS-232','GPIB']
+baud_rates = [300, 1200, 2400, 4800, 9600, 19200]
 
 
 class DAQ_0DViewer_LockInSR830(DAQ_Viewer_base):
@@ -36,7 +39,9 @@ class DAQ_0DViewer_LockInSR830(DAQ_Viewer_base):
                 'Aux In 2', 'Aux In 3', 'Aux In 4', 'Frequency', 'CH1', 'CH2']
 
     params = comon_parameters + [
+        {'title': 'Interface', 'name': 'interface', 'type': 'list', 'limits': interfaces, 'value': interfaces[0]},
         {'title': 'VISA:', 'name': 'device', 'type': 'list', 'limits': devices, 'value': device},
+        {'title': 'Baud rate (RS-232)', 'name': 'baud_rate', 'type': 'list', 'limits': baud_rates, 'value': baud_rates[4]},
         {'title': 'ID:', 'name': 'id', 'type': 'str', 'value': ""},
         {'title': 'Acquisition:', 'name': 'acq', 'type': 'group', 'children': [
             {'title': 'Use Trigger:', 'name': 'trigger', 'type': 'bool', 'value': False},
@@ -113,7 +118,10 @@ class DAQ_0DViewer_LockInSR830(DAQ_Viewer_base):
             else:
                 controller = controller
         else:  # Master stage
-            controller = SR830(self.settings['device'])
+            if self.settings['interface'] == "RS-232":
+                controller = SR830(self.settings['device'], baud_rate=self.settings['baud_rate'], read_termination="\r", write_termination="\r")
+            else:
+                controller = SR830(self.settings['device'], read_termination="\r", write_termination="\r")
         self.controller = controller
 
         self.controller.reset_buffer()
