@@ -152,10 +152,15 @@ class DAQ_0DViewer_LockInSR830(DAQ_Viewer_base):
         """
 
         selected_channels = self.settings['acq', 'channels']['selected']
-        snapped_list = self.controller.snap(*selected_channels)[:len(selected_channels)]
+
+        if Naverage == 1:
+            snapped_list = self.controller.snap(*selected_channels)[:len(selected_channels)]
+        elif Naverage > 1:
+            snapped_list = buffer_measure(Naverage=Naverage, delay=kwargs['wait_time'])[:2*len(selected_channels):2]
+            
         data_list_array = [np.array([snapped]) for snapped in snapped_list]
         dwas = self.create_dwas(data_list_array)
-
+        
         self.dte_signal.emit(DataToExport(name='SR830', data=dwas))
 
     def create_dwas(self, data_list_array: List[np.ndarray]) -> List[DataFromPlugins]:
