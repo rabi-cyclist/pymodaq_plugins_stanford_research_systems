@@ -156,7 +156,7 @@ class DAQ_0DViewer_LockInSR830(DAQ_Viewer_base):
         if Naverage == 1:
             snapped_list = self.controller.snap(*selected_channels)[:len(selected_channels)]
         elif Naverage > 1:
-            snapped_list = buffer_measure(Naverage=Naverage, delay=kwargs['wait_time'])[:2*len(selected_channels):2]
+            snapped_list = self.controller.buffer_measure(Naverage=Naverage)[:2*len(selected_channels):2]
             
         data_list_array = [np.array([snapped]) for snapped in snapped_list]
         dwas = self.create_dwas(data_list_array)
